@@ -12,6 +12,20 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v2
 
+      - name: Check Docker and Docker Compose versions
+        run: |
+          docker --version
+          docker-compose --version
+      - name: Check working directory
+        run: |
+          pwd
+          ls -la
+      - name: Check file permissions
+        run: |
+          ls -la docker-compose.yml
+      - name: Check PATH
+        run: |
+          echo $PATH
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
 
@@ -22,14 +36,20 @@ jobs:
         run: |
           echo "Building Docker image..."
           docker buildx build --push -t ${{ secrets.DOCKERHUB_USERNAME }}/python-greetings-app:latest .
+  
   deploy-to-dev:
     needs: build-docker-image
     runs-on: ubuntu-latest
     steps:
+      - name: Debugging Output
+        run: |
+          pwd
+          ls -la
+          cat /home/runner/work/python-greetings/python-greetings/docker-compose*
       - name: Deploy to Dev
         run: |
           echo "Deploying Python microservice to DEV environment..."
-          cd "/home/runner/work/python-greetings"
+          cd "/home/runner/work/python-greetings/python-greetings"
           docker pull ${{ secrets.DOCKERHUB_USERNAME }}/python-greetings-app:latest
           docker-compose down
           docker-compose up -d greetings-app-dev
@@ -49,7 +69,7 @@ jobs:
       - name: Deploy to Staging
         run: |
           echo "Deploying Python microservice to STG environment..."
-          cd "/home/runner/work/python-greetings"
+          cd "/home/runner/work/python-greetings/python-greetings"
           docker pull ${{ secrets.DOCKERHUB_USERNAME }}/python-greetings-app:latest
           docker-compose down
           docker-compose up -d greetings-app-stg
@@ -69,7 +89,7 @@ jobs:
       - name: Deploy to Production
         run: |
           echo "Deploying Python microservice to PROD environment..."
-          cd "/home/runner/work/python-greetings"
+          cd "/home/runner/work/python-greetings/python-greetings"
           docker pull ${{ secrets.DOCKERHUB_USERNAME }}/python-greetings-app:latest
           docker-compose down
           docker-compose up -d greetings-app-prod
@@ -81,4 +101,4 @@ jobs:
         run: |
           echo "Running tests on PROD environment..."
           docker pull ${{ secrets.DOCKERHUB_USERNAME }}/api-tests:latest
-          docker run --network=host --rm ${{ secrets.DOCKERHUB_USERNAME }}/api-tests:latest run greetings greetings_prod
+          docker run --network=host --rm ${{ secrets.DOCKERHUB_USERNAME }}/api-tests:latest run greetings greetings_prod this outputs Current runner version: '2.312.0'
