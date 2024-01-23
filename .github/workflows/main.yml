@@ -2,81 +2,80 @@ name: Python Microservice Pipeline
 
 on:
   push:
-    branches: [ main ]
+    branches:
+      - main
 
 jobs:
   build-docker-image:
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout code
+    - name: Checkout Repository
       uses: actions/checkout@v2
 
-    - name: Build and push Docker image
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v1
+
+    - name: Login to Docker Hub
+      run: docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_TOKEN }}
+
+    - name: Build Docker Image
       run: |
         echo "Building Docker image..."
-        docker build -t karlisrb/python-greetings-app:latest .
-        echo "Pushing Docker image to DockerHub..."
-        docker push karlisrb/python-greetings-app:latest
-
+        docker buildx build --push -t ${{ secrets.DOCKERHUB_USERNAME }}/python-greetings-app:latest .
   deploy-to-dev:
     needs: build-docker-image
     runs-on: ubuntu-latest
     steps:
-    - name: Deploy to DEV
+    - name: Deploy to Dev
       run: |
         echo "Deploying Python microservice to DEV environment..."
-        docker pull karlisrb/python-greetings-app:latest
-        docker-compose down
-        docker-compose up -d
-
+        docker pull ${{ secrets.DOCKERHUB_USERNAME }}/python-greetings-app:latest
+        docker-compose down greetings-app-dev
+        docker-compose up -d greetings-app-dev
   tests-on-dev:
     needs: deploy-to-dev
     runs-on: ubuntu-latest
     steps:
-    - name: Run tests on DEV
+    - name: Tests on Dev
       run: |
         echo "Running tests on DEV environment..."
-        docker pull karlisrb/api-tests:latest
-        docker run --network=host --rm karlisrb/api-tests:latest run greetings greetings_dev
-
+        docker pull ${{ secrets.DOCKERHUB_USERNAME }}/api-tests:latest
+        docker run --network=host --rm ${{ secrets.DOCKERHUB_USERNAME }}/api-tests:latest run greetings greetings_dev
   deploy-to-stg:
     needs: tests-on-dev
     runs-on: ubuntu-latest
     steps:
-    - name: Deploy to STG
+    - name: Deploy to Staging
       run: |
         echo "Deploying Python microservice to STG environment..."
-        docker pull karlisrb/python-greetings-app:latest
-        docker-compose down
-        docker-compose up -d
-
+        docker pull ${{ secrets.DOCKERHUB_USERNAME }}/python-greetings-app:latest
+        docker-compose down greetings-app-stg
+        docker-compose up -d greetings-app-stg
   tests-on-stg:
     needs: deploy-to-stg
     runs-on: ubuntu-latest
     steps:
-    - name: Run tests on STG
+    - name: Tests on Staging
       run: |
         echo "Running tests on STG environment..."
-        docker pull karlisrb/api-tests:latest
-        docker run --network=host --rm karlisrb/api-tests:latest run greetings greetings_stg
-
+        docker pull ${{ secrets.DOCKERHUB_USERNAME }}/api-tests:latest
+        docker run --network=host --rm ${{ secrets.DOCKERHUB_USERNAME }}/api-tests:latest run greetings greetings_stg
   deploy-to-prod:
     needs: tests-on-stg
     runs-on: ubuntu-latest
     steps:
-    - name: Deploy to PROD
+    - name: Deploy to Production
       run: |
         echo "Deploying Python microservice to PROD environment..."
-        docker pull karlisrb/python-greetings-app:latest
-        docker-compose down
-        docker-compose up -d
-
+        docker pull ${{ secrets.DOCKERHUB_USERNAME }}/python-greetings-app:latest
+        docker-compose down greetings-app-prod
+        docker-compose up -d greetings-app-prod
   tests-on-prod:
     needs: deploy-to-prod
     runs-on: ubuntu-latest
     steps:
-    - name: Run tests on PROD
+    - name: Tests on Production
       run: |
         echo "Running tests on PROD environment..."
-        docker pull karlisrb/api-tests:latest
-        docker run --network=host --rm karlisrb/api-tests:latest run greetings greetings_prod
+        docker pull ${{ secrets.DOCKERHUB_USERNAME }}/api-tests:latest
+        docker run --network=host --rm ${{ secrets.DOCKERHUB_USERNAME }}/api-tests:latest run greetings greetings_prod
