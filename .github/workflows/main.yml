@@ -48,13 +48,11 @@ jobs:
           cat /home/runner/work/python-greetings/python-greetings/docker-compose*
 
       - name: Deploy to Dev
-        run: |
-          echo "Deploying Python microservice to DEV environment..."
-          cd "/home/runner/work/python-greetings/python-greetings"
-          docker pull ${{ secrets.DOCKERHUB_USERNAME }}/python-greetings-app:latest
-          docker-compose down
-          docker-compose up -d greetings-app-dev
-
+  run: |
+    echo "Deploying Python microservice to DEV environment..."
+    docker pull ${{ secrets.DOCKERHUB_USERNAME }}/python-greetings-app:latest
+    docker-compose -f /home/runner/work/python-greetings/python-greetings/docker-compose.yml down
+    docker-compose -f /home/runner/work/python-greetings/python-greetings/docker-compose.yml up -d greetings-app-dev
   tests-on-dev:
     needs: deploy-to-dev
     runs-on: ubuntu-latest
