@@ -2,86 +2,81 @@ name: Python Microservice Pipeline
 
 on:
   push:
-    branches:
-      - main
+    branches: [ main ]
 
 jobs:
   build-docker-image:
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout Repository
+    - name: Checkout code
       uses: actions/checkout@v2
 
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v1
-
-    - name: Login to Docker Hub
-      run: docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_TOKEN }}
-
-    - name: Build Docker Image
+    - name: Build and push Docker image
       run: |
         echo "Building Docker image..."
-        docker buildx build --push -t ${{ secrets.DOCKERHUB_USERNAME }}/python-greetings-app:latest .
+        docker build -t karlisrb/python-greetings-app:latest .
+        echo "Pushing Docker image to DockerHub..."
+        docker push karlisrb/python-greetings-app:latest
+
   deploy-to-dev:
     needs: build-docker-image
     runs-on: ubuntu-latest
     steps:
-    - name: Deploy to Dev
+    - name: Deploy to DEV
       run: |
         echo "Deploying Python microservice to DEV environment..."
-        docker pull ${{ secrets.DOCKERHUB_USERNAME }}/python-greetings-app:latest
-        docker-compose down greetings-app-dev
-        docker-compose up -d greetings-app-dev
-      working-directory: ./python-greetings
+        docker pull karlisrb/python-greetings-app:latest
+        docker-compose down
+        docker-compose up -d
+
   tests-on-dev:
     needs: deploy-to-dev
     runs-on: ubuntu-latest
     steps:
-    - name: Tests on Dev
+    - name: Run tests on DEV
       run: |
         echo "Running tests on DEV environment..."
-        docker pull ${{ secrets.DOCKERHUB_USERNAME }}/api-tests:latest
-        docker run --network=host --rm ${{ secrets.DOCKERHUB_USERNAME }}/api-tests:latest run greetings greetings_dev
-      working-directory: ./python-greetings
+        docker pull karlisrb/api-tests:latest
+        docker run --network=host --rm karlisrb/api-tests:latest run greetings greetings_dev
+
   deploy-to-stg:
     needs: tests-on-dev
     runs-on: ubuntu-latest
     steps:
-    - name: Deploy to Staging
+    - name: Deploy to STG
       run: |
         echo "Deploying Python microservice to STG environment..."
-        docker pull ${{ secrets.DOCKERHUB_USERNAME }}/python-greetings-app:latest
-        docker-compose down greetings-app-stg
-        docker-compose up -d greetings-app-stg
-      working-directory: ./python-greetings
+        docker pull karlisrb/python-greetings-app:latest
+        docker-compose down
+        docker-compose up -d
+
   tests-on-stg:
     needs: deploy-to-stg
     runs-on: ubuntu-latest
     steps:
-    - name: Tests on Staging
+    - name: Run tests on STG
       run: |
         echo "Running tests on STG environment..."
-        docker pull ${{ secrets.DOCKERHUB_USERNAME }}/api-tests:latest
-        docker run --network=host --rm ${{ secrets.DOCKERHUB_USERNAME }}/api-tests:latest run greetings greetings_stg
-      working-directory: ./python-greetings
+        docker pull karlisrb/api-tests:latest
+        docker run --network=host --rm karlisrb/api-tests:latest run greetings greetings_stg
+
   deploy-to-prod:
     needs: tests-on-stg
     runs-on: ubuntu-latest
     steps:
-    - name: Deploy to Production
+    - name: Deploy to PROD
       run: |
         echo "Deploying Python microservice to PROD environment..."
-        docker pull ${{ secrets.DOCKERHUB_USERNAME }}/python-greetings-app:latest
-        docker-compose down greetings-app-prod
-        docker-compose up -d greetings-app-prod
-      working-directory: ./python-greetings
+        docker pull karlisrb/python-greetings-app:latest
+        docker-compose down
+        docker-compose up -d
+
   tests-on-prod:
     needs: deploy-to-prod
     runs-on: ubuntu-latest
     steps:
-    - name: Tests on Production
+    - name: Run tests on PROD
       run: |
         echo "Running tests on PROD environment..."
-        docker pull ${{ secrets.DOCKERHUB_USERNAME }}/api-tests:latest
-        docker run --network=host --rm ${{ secrets.DOCKERHUB_USERNAME }}/api-tests:latest run greetings greetings_prod
-      working-directory: ./python-greetings
+        docker pull karlisrb/api-tests:latest
+        docker run --network=host --rm karlisrb/api-tests:latest run greetings greetings_prod
