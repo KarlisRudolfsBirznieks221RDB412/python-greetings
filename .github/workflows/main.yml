@@ -32,6 +32,7 @@ jobs:
         docker pull ${{ secrets.DOCKERHUB_USERNAME }}/python-greetings-app:latest
         docker-compose down greetings-app-dev
         docker-compose up -d greetings-app-dev
+      working-directory: ./python-greetings
   tests-on-dev:
     needs: deploy-to-dev
     runs-on: ubuntu-latest
@@ -41,6 +42,7 @@ jobs:
         echo "Running tests on DEV environment..."
         docker pull ${{ secrets.DOCKERHUB_USERNAME }}/api-tests:latest
         docker run --network=host --rm ${{ secrets.DOCKERHUB_USERNAME }}/api-tests:latest run greetings greetings_dev
+      working-directory: ./python-greetings
   deploy-to-stg:
     needs: tests-on-dev
     runs-on: ubuntu-latest
@@ -51,6 +53,7 @@ jobs:
         docker pull ${{ secrets.DOCKERHUB_USERNAME }}/python-greetings-app:latest
         docker-compose down greetings-app-stg
         docker-compose up -d greetings-app-stg
+      working-directory: ./python-greetings
   tests-on-stg:
     needs: deploy-to-stg
     runs-on: ubuntu-latest
@@ -60,6 +63,7 @@ jobs:
         echo "Running tests on STG environment..."
         docker pull ${{ secrets.DOCKERHUB_USERNAME }}/api-tests:latest
         docker run --network=host --rm ${{ secrets.DOCKERHUB_USERNAME }}/api-tests:latest run greetings greetings_stg
+      working-directory: ./python-greetings
   deploy-to-prod:
     needs: tests-on-stg
     runs-on: ubuntu-latest
@@ -70,6 +74,7 @@ jobs:
         docker pull ${{ secrets.DOCKERHUB_USERNAME }}/python-greetings-app:latest
         docker-compose down greetings-app-prod
         docker-compose up -d greetings-app-prod
+      working-directory: ./python-greetings
   tests-on-prod:
     needs: deploy-to-prod
     runs-on: ubuntu-latest
@@ -79,3 +84,4 @@ jobs:
         echo "Running tests on PROD environment..."
         docker pull ${{ secrets.DOCKERHUB_USERNAME }}/api-tests:latest
         docker run --network=host --rm ${{ secrets.DOCKERHUB_USERNAME }}/api-tests:latest run greetings greetings_prod
+      working-directory: ./python-greetings
