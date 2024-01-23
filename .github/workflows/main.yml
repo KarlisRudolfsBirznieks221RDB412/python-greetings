@@ -9,73 +9,82 @@ jobs:
   build-docker-image:
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout Repository
-      uses: actions/checkout@v2
+      - name: Checkout Repository
+        uses: actions/checkout@v2
 
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v1
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
 
-    - name: Login to Docker Hub
-      run: docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Login to Docker Hub
+        run: docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_TOKEN }}
 
-    - name: Build Docker Image
-      run: |
-        echo "Building Docker image..."
-        docker buildx build --push -t ${{ secrets.DOCKERHUB_USERNAME }}/python-greetings-app:latest .
+      - name: Build Docker Image
+        run: |
+          echo "Building Docker image..."
+          docker buildx build --push -t ${{ secrets.DOCKERHUB_USERNAME }}/python-greetings-app:latest .
+
   deploy-to-dev:
     needs: build-docker-image
     runs-on: ubuntu-latest
     steps:
-    - name: Deploy to Dev
-      run: |
-        echo "Deploying Python microservice to DEV environment..."
-        docker pull ${{ secrets.DOCKERHUB_USERNAME }}/python-greetings-app:latest
-        docker-compose down greetings-app-dev
-        docker-compose up -d greetings-app-dev
+      - name: Deploy to Dev
+        run: |
+          echo "Deploying Python microservice to DEV environment..."
+          cd C:\Users\karli\Desktop\TDL_FinalTask\python-greetings
+          docker pull ${{ secrets.DOCKERHUB_USERNAME }}/python-greetings-app:latest
+          docker-compose down greetings-app-dev
+          docker-compose up -d greetings-app-dev
+
   tests-on-dev:
     needs: deploy-to-dev
     runs-on: ubuntu-latest
     steps:
-    - name: Tests on Dev
-      run: |
-        echo "Running tests on DEV environment..."
-        docker pull ${{ secrets.DOCKERHUB_USERNAME }}/api-tests:latest
-        docker run --network=host --rm ${{ secrets.DOCKERHUB_USERNAME }}/api-tests:latest run greetings greetings_dev
+      - name: Tests on Dev
+        run: |
+          echo "Running tests on DEV environment..."
+          docker pull ${{ secrets.DOCKERHUB_USERNAME }}/api-tests:latest
+          docker run --network=host --rm ${{ secrets.DOCKERHUB_USERNAME }}/api-tests:latest run greetings greetings_dev
+
   deploy-to-stg:
     needs: tests-on-dev
     runs-on: ubuntu-latest
     steps:
-    - name: Deploy to Staging
-      run: |
-        echo "Deploying Python microservice to STG environment..."
-        docker pull ${{ secrets.DOCKERHUB_USERNAME }}/python-greetings-app:latest
-        docker-compose down greetings-app-stg
-        docker-compose up -d greetings-app-stg
+      - name: Deploy to Staging
+        run: |
+          echo "Deploying Python microservice to STG environment..."
+          cd C:\Users\karli\Desktop\TDL_FinalTask\python-greetings
+          docker pull ${{ secrets.DOCKERHUB_USERNAME }}/python-greetings-app:latest
+          docker-compose down greetings-app-stg
+          docker-compose up -d greetings-app-stg
+
   tests-on-stg:
     needs: deploy-to-stg
     runs-on: ubuntu-latest
     steps:
-    - name: Tests on Staging
-      run: |
-        echo "Running tests on STG environment..."
-        docker pull ${{ secrets.DOCKERHUB_USERNAME }}/api-tests:latest
-        docker run --network=host --rm ${{ secrets.DOCKERHUB_USERNAME }}/api-tests:latest run greetings greetings_stg
+      - name: Tests on Staging
+        run: |
+          echo "Running tests on STG environment..."
+          docker pull ${{ secrets.DOCKERHUB_USERNAME }}/api-tests:latest
+          docker run --network=host --rm ${{ secrets.DOCKERHUB_USERNAME }}/api-tests:latest run greetings greetings_stg
+
   deploy-to-prod:
     needs: tests-on-stg
     runs-on: ubuntu-latest
     steps:
-    - name: Deploy to Production
-      run: |
-        echo "Deploying Python microservice to PROD environment..."
-        docker pull ${{ secrets.DOCKERHUB_USERNAME }}/python-greetings-app:latest
-        docker-compose down greetings-app-prod
-        docker-compose up -d greetings-app-prod
+      - name: Deploy to Production
+        run: |
+          echo "Deploying Python microservice to PROD environment..."
+          cd C:\Users\karli\Desktop\TDL_FinalTask\python-greetings
+          docker pull ${{ secrets.DOCKERHUB_USERNAME }}/python-greetings-app:latest
+          docker-compose down greetings-app-prod
+          docker-compose up -d greetings-app-prod
+
   tests-on-prod:
     needs: deploy-to-prod
     runs-on: ubuntu-latest
     steps:
-    - name: Tests on Production
-      run: |
-        echo "Running tests on PROD environment..."
-        docker pull ${{ secrets.DOCKERHUB_USERNAME }}/api-tests:latest
-        docker run --network=host --rm ${{ secrets.DOCKERHUB_USERNAME }}/api-tests:latest run greetings greetings_prod
+      - name: Tests on Production
+        run: |
+          echo "Running tests on PROD environment..."
+          docker pull ${{ secrets.DOCKERHUB_USERNAME }}/api-tests:latest
+          docker run --network=host --rm ${{ secrets.DOCKERHUB_USERNAME }}/api-tests:latest run greetings greetings_prod
