@@ -32,7 +32,7 @@ jobs:
           echo "Deploying Python microservice to DEV environment..."
           cd "/home/runner/work/python-greetings"
           docker pull ${{ secrets.DOCKERHUB_USERNAME }}/python-greetings-app:latest
-          docker-compose down greetings-app-dev
+          docker-compose down
           docker-compose up -d greetings-app-dev
 
   tests-on-dev:
@@ -54,7 +54,7 @@ jobs:
           echo "Deploying Python microservice to STG environment..."
           cd "/home/runner/work/python-greetings"
           docker pull ${{ secrets.DOCKERHUB_USERNAME }}/python-greetings-app:latest
-          docker-compose down greetings-app-stg
+          docker-compose down
           docker-compose up -d greetings-app-stg
 
   tests-on-stg:
@@ -76,7 +76,7 @@ jobs:
           echo "Deploying Python microservice to PROD environment..."
           cd "/home/runner/work/python-greetings"
           docker pull ${{ secrets.DOCKERHUB_USERNAME }}/python-greetings-app:latest
-          docker-compose down greetings-app-prod
+          docker-compose down
           docker-compose up -d greetings-app-prod
 
   tests-on-prod:
