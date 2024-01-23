@@ -45,7 +45,7 @@ jobs:
         run: |
           pwd
           ls -la
-          cat /home/runner/work/python-greetings/python-greetings/docker-compose.yml
+          cat /home/runner/work/python-greetings/python-greetings/docker-compose*
 
       - name: Deploy to Dev
         run: |
